@@ -1,0 +1,111 @@
+<html>
+
+<head>
+    <title>Q Browser Sample</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="QBrowser.js"></script>
+    <script type="text/javascript" src="demo.js"></script>
+    <link href="demo.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="main">
+            <div class="main__header">
+                <!--<a class="main__header--share">QUICK START GUIDE -><i></i></a>-->
+                <h1 class="main__header--title"><img src="quantum-white.svg">Browser</h1>
+                <p class="main__header--description">Q Browser is an Enterprise Browser that enables the use of Infinite Peripherals devices without the need to write an app. From here, you can connect your web application or explore some of our demo functions.
+                </p>
+                <!-- <hr /> -->
+                <a class="function" onclick="openConnect();">Connect your application</a>
+                <!--
+                <p> - or - </p>
+                <p>Explore our demo functions:</p>
+                -->
+            </div>
+            <hr />
+            <div class="main__group">
+                <img src="iphone.svg"><label>Device Functions</label>
+                <a class="function" onclick="NotifyMessage()">Alert</a>
+                <a class="function" onclick="NotifyVibrate()">Vibrate</a>
+                <a class="function" onclick="NotifyBeep()">Beep / Chime</a>
+                <a class="function" onclick="ImageFromCamera()">Capture image</a>
+                <a class="function" onclick="ImageFromAlbum()">Import image</a>
+                <a class="function" onclick="ImageSimulate()">Simulate image import</a>
+                <a class="function" onclick="PhoneDial()">Dial phone number</a>
+                <a class="function" onclick="PhoneSMS()">Send SMS message</a>
+            </div>
+            <hr />
+            <div class="main__group">
+                <img src="qr-code.svg"><label>Barcode Functions</label>
+                <p class="desc">Scanned barcodes will be displayed in the Demo Output section. The JavaScript barcode function can be changed in Q Browser's app settings. Default is BarcodeData(barcode, type, typeText)
+                </p>
+                <a class="function" onclick="BarcodeSimulate()">Simulate barcode scan</a>
+            </div>
+            <hr />
+            <div class="main__group">
+                <img src="payment.svg"><label>Payment Functions</label>
+                <p class="desc">Read cards will be displayed in the Demo Output section. The JavaScript MSR function can be renamed in Q Browser's app settings. Default is MagneticCardData(card)
+                </p>
+                <a class="function" onclick="MSSimulate()">Simulate card swipe</a>
+            </div>
+            <hr />
+            <div class="main__group">
+                <img src="peripheral.svg"><label>Peripheral Functions</label>
+                <a class="function" onclick="GetDeviceInfo()">Display device info</a>
+                <a class="function" onclick="EnableCharging()">Enable external battery charging</a>
+                <a class="function" onclick="DisableCharging()">Disable external battery charging</a>
+                <a class="function" onclick="getBatteryInfo()">Display battery info</a>
+            </div>
+            <hr />
+            <div class="main__group">
+                <img src="print.svg"><label>Printer Functions</label>
+                <p class="desc">Printers paired with iOS Bluetooth will automatically connect to the application. You can also use the Bluetooth.printerConnect() or Bluetooth.discoverPrinters() functions to connect or search for printers.
+                </p>
+                <a class="function" onclick="PrintText()">Print text</a>
+                <a class="function" onclick="PrintBarcode()">Print barcode</a>
+                <a class="function" onclick="PrintImage()">Print last imported image</a>
+            </div>
+        </div>
+        <div class="connect" id="connect">
+            <div class="connect__close">
+                <img src="x.png" onclick="closeConnect();">
+            </div>
+            <div class="connect__header">
+                <img src="browser-icon.png">
+            </div>
+            <div class="connect__body">
+                <h1>Connect Your Application</h1>
+                <div class="connect__input--group">
+                    <input id="url" class="connect__input" placeholder="http://yourapp.com">
+                </div>
+                <div class="connect__input--group">
+                    <label class="form-switch">
+                        <input id="defaultURLSwitch" type="checkbox">
+                        <i></i>
+                        <span>Set as default URL</span>
+                        <div>This can be changed in Q Browser's app settings</div>
+                    </label>
+                </div>
+                <div class="connect__input--group">
+                    <label class="form-switch">
+                        <input id="navSwitch" type="checkbox" onclick="ToggleNav()">
+                        <i></i>
+                        <span>Show Navigation</span>
+                    </label>
+                </div>
+                <div class="connect__input--button">
+                    <button onclick="Connect()">Connect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="output" id="output">
+        <button onclick="toggleOutput();">Show Demo Output</button>
+        <div class="output__window">
+        </div>
+        <br/>
+    </div>
+</body>
+
+</html>

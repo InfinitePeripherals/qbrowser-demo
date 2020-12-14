@@ -942,8 +942,6 @@ var QBrowser = new function()
     };
 
     /**
-     * Magstripe class with 
-     * 
      * @class MagStripe
      * @classdesc Functions to monitor and control compatible magnetic card readers attached to the device.
      * <br><br>
@@ -952,8 +950,8 @@ var QBrowser = new function()
      * - card.tracks(array) - an array with card track data. Every track is returned as a string or null if the track was not read
      * - card.cardholderName(string) - in case of valid financial card and correctly parsed track 1, cardholder name is stored here
      * - card.accountNumber(string) - in case of valid financial card and correctly parsed track 1 or 2, account number is stored here
-     * - card.exirationMonth(number) - in case of valid financial card and correctly parsed track 1 or 2, expiration month is stored here
-     * - card.exirationYear(number) - in case of valid financial card and correctly parsed track 1 or 2, expiration year is stored here
+     * - card.expirationMonth(number) - in case of valid financial card and correctly parsed track 1 or 2, expiration month is stored here
+     * - card.expirationYear(number) - in case of valid financial card and correctly parsed track 1 or 2, expiration year is stored here
      * <br><br>
      * In the case of encrypted card data, QBrowser will send the data to the function, specified in settings (msrEncryptedFunction). Format: EncryptedMagneticCardData(encryption, tracks, data)<br><br>
      * Parameters:

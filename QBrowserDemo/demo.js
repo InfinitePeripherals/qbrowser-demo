@@ -122,8 +122,8 @@ function MagneticCardData(card) {
         PrintOutput("Account Number: " + card.accountNumber + "<br/>");
     }
 
-    if (card.exirationMonth && card.exirationYear) {
-        PrintOutput("Expires: " + card.exirationMonth + "/" + card.exirationYear + "<br/>");
+    if (card.expirationMonth && card.expirationYear) {
+        PrintOutput("Expires: " + card.expirationMonth + "/" + card.expirationYear + "<br/>");
     }
 }
 

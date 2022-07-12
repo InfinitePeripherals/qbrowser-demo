@@ -1,6 +1,6 @@
 /**
  * @file - QBrowser.js
- * @version - Version 1.1.0
+ * @version - Version 1.6
  * 
  * @author - Created by Infinite Peripherals
  * @copyright - Copyright © 2021 Infinite Peripherals Inc. All rights reserved.

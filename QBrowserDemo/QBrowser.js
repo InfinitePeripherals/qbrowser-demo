@@ -1,12 +1,41 @@
 /**
  * @file - QBrowser.js
- * @version - Version 1.0.1
+ * @version - Version 1.1.0
  * 
  * @author - Created by Infinite Peripherals
- * @copyright - Copyright © 2020 Infinite Peripherals Inc. All rights reserved.
+ * @copyright - Copyright © 2021 Infinite Peripherals Inc. All rights reserved.
  * 
- * @see - {@link https://github.com/InfinitePeripherals/qbrowser-demo|Demo Project}
+ * @see - {@link https://github.com/InfinitePeripherals/qbrowser-demo | Demo Project}
  */
+
+ class InvoiceItem {
+    constructor(
+        productCode, // String
+        description, // String
+        saleCode, // QBrowser.QPay.SaleCode
+        quantity, // Number
+        unitOfMeasureCode, // String
+        unitPrice, // String
+        taxIncludedInPrice, // Boolean
+        net, // Number
+        tax, // Number
+        discount, // Number
+        gross // Number 
+        ) {
+        this.productCode = productCode;
+        this.description = description;
+        this.saleCode = saleCode;
+        this.quantity = quantity;
+        this.unitOfMeasureCode = unitOfMeasureCode;
+        this.unitPrice = unitPrice;
+        this.taxIncludedInPrice = taxIncludedInPrice;
+        this.net = net;
+        this.tax = tax;
+        this.discount = discount;
+        this.gross = gross;
+    }
+}
+
 var QBrowser = new function()
 {
     this.ERR_UNSUPPORTED = 1;
@@ -1566,9 +1595,9 @@ var QBrowser = new function()
         };
 
         /**
-         * Performs background discovery of the nearby bluetooth devices. The discovery status and devices found will be sent via delegate notifications.
+         * Performs background discovery of the nearby Classic Bluetooth devices. The discovery status and devices found will be sent via delegate notifications.
          * @memberof Bluetooth
-         * @param {number} maxDevices - Maximum results to return
+         * @param {number} maxDevices - Maximum number of devices to return
          * @param {number} maxTimeout - Max time to discover, in seconds. Actual time may vary.
          * @param {number} codTypes - Bluetooth Class Of Device to look for or 0 to search for all bluetooth devices
          * @param {function} errorFunction - Error function
@@ -1576,6 +1605,41 @@ var QBrowser = new function()
         this.discoverDevices = function(maxDevices, maxTimeout, codTypes, errorFunction)
         {
             NativeCall("bluetooth.discoverDevices", [maxDevices, maxTimeout, codTypes], [errorFunction]);
+        };
+
+        /**
+         * Performs background discovery of the nearby Bluetooth Low Energy (BLE) devices. The discovery status and devices found will be sent via delegate notifications.
+         * @memberof Bluetooth 
+         * @param {number} maxDevices - Maximum number of devices to return
+         * @param {function} successFunction - The success function where a list of device names will be sent to
+         * @param {function} errorFunction - Error function
+         */
+        this.btleDiscoverSupportedDevices = function(maxDevices, successFunction, errorFunction)
+        {
+            NativeCall("bluetooth.btleDiscoverSupportedDevices", [maxDevices], [successFunction, errorFunction]);
+        };
+
+        /**
+         * Connect to the target BLE device. Once connected successfully, a notification will be sent to btleConnectedFunction.
+         * @memberof Bluetooth
+         * @param {string} name - The target BLE device name to connect to.
+         * @param {function} btleConnectedFunction - The function to call once connected.
+         * @param {function} errorFunction - Error function
+         */
+        this.btleConnectToDevice = function(name, btleConnectedFunction, errorFunction)
+        {
+            NativeCall("bluetooth.btleConnectToDevice", [name], [btleConnectedFunction, errorFunction]);
+        };
+
+        /**
+         * Disconnect a BLE device.
+         * @memberof Bluetooth
+         * @param {string} name - The BLE device name to disconnect, if connected.
+         * @param {function} errorFunction - Error function
+         */
+        this.btleDisconnect = function(name, errorFunction)
+        {
+            NativeCall("bluetooth.btleDisconnect", [name], [errorFunction]);
         };
 
         /**
@@ -1792,11 +1856,456 @@ var QBrowser = new function()
             NativeCall("license.releaseOffline", null, null);
         };
     };
+    
+    // ********************* Payment API ***********************
+    // Please contact Infinite Peripherals for access and usage.
+    // *********************************************************
+
+    /**
+     * @class QPay
+     * @classdecs Functions to work with Quantum Pay. It is important to set the Quantum Pay credentials from MDM or the app's settings.
+     */
+    this.QPay = new function()
+    {
+        /**
+         * The available payment peripherals
+         * @memberof QPay
+         */
+        this.Peripherals = {
+            QPC150: "QPC-150",
+            QPC250: "QPC-250",
+            QPP400: "QPP-400",
+            QPP450: "QPP-450",
+            QPR250: "QPR-250",
+            QPR300: "QPR-300"
+        };
+                
+        /**
+         * The available server environments
+         * @memberof QPay
+         */
+        this.ServerEnvironments = {
+            TEST: "test",
+            DEVELOPER: "developer",
+            PRODUCTION: "production"
+        };
+
+        /**
+         * Instruction to pick the application available in the card.
+         * @memberof QPay
+         */
+        this.EmvApplicationSelectionStrategy = {
+            DEFAULT: "default",                             // Kernel will decide which application to pick
+            FIRST: "first",                                 // Pick the first application of the card
+            USER_INTERFACE_PICKER: "userInterfacePicker"    // Let user decide, only on PinPad with a screen
+        };
+
+        /**
+         * Specify how and when to authenticate and upload transactions
+         * @memberof QPay
+         */
+        this.StoreAndForwardMode = {
+            DISABLED: "disabled",                           // Always requires online authentication
+            WHEN_OFFLINE: "whenOffline",                    // Offline approval when no internet connection
+            ALWAYS: "always",                               // Always offline, each transaction will receive an offline decision
+            ALWAYS_BATCH: "alwaysBatch"                     // Always offline, but transactions will be batched together and no approval will be returned.
+        };
+
+        /**
+         * SaleCode for invoice item
+         * @memberof QPay
+         */
+        this.SaleCode = {
+            SALE: "S",                                      // Sale
+            RETURN: "R",                                    // Return
+            LEASE: "L"                                      // Lease
+        };
+
+        /**
+         * The type to process the transaction
+         * @memberof QPay
+         */
+        this.TransactionType = {
+            SALE: "sale",
+            REFUND: "refund",
+            AUTH: "auth",
+            CAPTURE: "capture",
+            VOID: "void",
+            UNDO: "undo"
+        };
+
+        /**
+         * The units of measure
+         * @memberof QPay
+         */
+        this.UnitOfMeasure = {
+            EACH: "EAC"
+        };
+
+        /**
+         * The currency used for the transaction amount
+         * @memberof QPay
+         */
+        this.Currency = {
+            USD: "USD"
+        };
+
+        /**
+         * Initialize the Quantum Pay module with host key and tenant key. 
+         * This must be called first before utilizing any other QPay functions.
+         * @memberof QPay
+         * @param {function} errorFunction
+         */
+        this.initialize = function(errorFunction) 
+        {
+            NativeCall("qpay.initialize", null, [errorFunction]);
+        };
+
+        /**
+         * @class PaymentEngine
+         * @classdesc The central engine for performing card transactions with Quantum Pay.
+         */
+        this.PaymentEngine = new function()
+        {
+            /**
+             * A payment engine builder. This builder must be initialized before calling other functions
+             * @memberof PaymentEngine
+             * @param {function} errorFunction - Any error will be passed in here.
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object to fluent access.
+             */
+            this.builder = function(errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.builder", null, [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Returns an InvoiceBuilder for creating and configuring a new invoice.
+             * @memberof PaymentEngine
+             * @param {string} reference - The reference to use for this invoice.
+             * @param {function} errorFunction 
+             * @returns {InvoiceBuilder} - The InvoiceBuilder object for fluent access.
+             */
+            this.buildInvoice = function(reference, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.buildInvoice", [reference], [errorFunction]);
+                return QBrowser.QPay.InvoiceBuilder;
+            };
+
+            /**
+             * Build a transaction using the provided invoice.
+             * @memberof PaymentEngine
+             * @param {Invoice} invoice - The invoice object received from InvoiceBuilder.build() when the function succeed. 
+             * @param {function} errorFunction 
+             * @returns {TransactionBuilder}
+             */
+            this.buildTransaction = function(invoice, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.buildTransaction", [JSON.stringify(invoice)], [errorFunction]);
+                return QBrowser.QPay.TransactionBuilder;
+            };
+
+            /**
+             * Start taking card payment and process the transaction.
+             * @memberof PaymentEngine
+             * @param {function} errorFunction 
+             */
+            this.startTransaction = function(errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.startTransaction", null, [errorFunction]);
+            };
+
+            /**
+             * Stop current active transaction if it is not being processed.
+             * @memberof PaymentEngine
+             * @param {function} errorFunction 
+             */
+            this.stopActiveTransaction = function(errorFunction) 
+            {
+                NativeCall("qpay.PaymentEngine.stopActiveTransaction", null, [errorFunction]);
+            };
+
+            /**
+             * Get all offline stored transaction from database
+             * @memberof PaymentEngine
+             * @param {function} successFunction - When success, a list of stored transaction will be returned.
+             * @param {function} errorFunction 
+             */
+            this.getStoredTransactions = function(successFunction, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.getStoredTransactions", null, [successFunction, errorFunction]);
+            };
+
+            /**
+             * Upload all local stored transactions
+             * @memberof PaymentEngine
+             * @param {*} successFunction 
+             * @param {*} errorFunction 
+             */
+            this.uploadAllStoredTransactions = function(successFunction, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngine.uploadAllStoredTransactions", null, [successFunction, errorFunction]);
+            };
+
+            /**
+             * This return the state of the payment device only
+             * @memberof PaymentEngine
+             * @param {function} handler - The function where the connection state will be passed in
+             */
+            this.setConnectionStateHandler = function(handler)
+            {
+                NativeCall("qpay.PaymentEngine.setConnectionStateHandler", null, [handler]);
+            };
+
+            /**
+             * This return the transaction result (e.g.: complete, failed...) to the handler function
+             * @memberof PaymentEngine
+             * @param {function} handler - The function which will receive the TransactionResult object
+             */
+            this.setTransactionResultHandler = function(handler)
+            {
+                NativeCall("qpay.PaymentEngine.setTransactionResultHandler", null, [handler]);
+            };
+
+            /**
+             * This return the transaction state (e.g.: inactive, readReadFailed...) to the handler function
+             * @memberof PaymentEngine
+             * @param {function} handler - This function will receive the current state of the transaction as well as the updated transaction object. The transaction object contain info needed for generating a receipt when it is approved.
+             */
+            this.setTransactionStateHandler = function(handler)
+            {
+                NativeCall("qpay.PaymentEngine.setTransactionStateHandler", null, [handler]);
+            };
+
+            /**
+             * This returns the peripheral state (e.g.: not ready, ready, processing, error...) to the handler function.
+             * @memberof PaymentEngine
+             * @param {function} handler - This function will receive the peripheral state
+             */
+            this.setPeripheralStateHandler = function(handler)
+            {
+                NativeCall("qpay.PaymentEngine.setPeripheralStateHandler", null, [handler]);
+            };
+
+            /**
+             * This returns the peripheral message (e.g.: idle, presentCard, insertCard, enterPin, removeCard...)
+             * @memberof PaymentEngine
+             * @param {function} handler - This function will receive the peripheral message.
+             */
+            this.setPeripheralMessageHandler = function(handler)
+            {
+                NativeCall("qpay.PaymentEngine.setPeripheralMessageHandler", null, [handler]);
+            };
+        };
+
+        /**
+         * @class PaymentEngineBuilder
+         * @classdesc The PaymentEngineBuild class build PaymentEngine with all the provided parameters
+         */
+        this.PaymentEngineBuilder = new function()
+        {
+            /**
+             * Set a peripheral for PaymentEngine to use to process payment.
+             * @memberof PaymentEngineBuilder
+             * @param {Peripherals} deviceType - The device type to use. Use one of QPay.Peripherals
+             * @param {string} deviceSerial - The serial of the device. If the device has a lightning connector (QPC150, QPC250), then pass null to deviceSerial
+             * @param {function} errorFunction - Any error will be passed in here.
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object for fluent access.
+             */
+            this.addPeripheral = function(deviceType, deviceSerial, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.addPeripheral", [deviceType, deviceSerial], [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Set a server environment that is suitable for the workflow
+             * @memberof PaymentEngineBuilder
+             * @param {ServerEnvironments} environment - one of QBrowser.QPay.ServerEnvironments
+             * @param {function} errorFunction - Any error will be passed in here.
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object for fluent access.
+             */
+            this.server = function(environment, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.server", [environment], [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Set a timeout for transaction if a payment card is not presented within the time allowed, the transaction will fail.
+             * @memberof PaymentEngineBuilder
+             * @param {number} timeout 
+             * @param {function} errorFunction 
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object for fluent access.
+             */
+            this.transactionTimeout = function(timeout, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.transactionTimeout", [timeout], [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Represents a strategy to use when the presented card supports multiple EMV applications 
+             * and the peripheral is not able to automatically decide 
+             * which EMV application should be used to continue processing the presented payment card.
+             * @memberof PaymentEngineBuilder
+             * @param {EmvApplicationSelectionStrategy} strategy 
+             * @param {function} errorFunction - Any error will be passed in here.
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object for fluent access.
+             */
+            this.emvApplicationSelectionStrategy = function(strategy, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.emvApplicationSelectionStrategy", [strategy], [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Determine if transactions should be process online or offline mode.
+             * @memberof PaymentEngineBuilder
+             * @param {StoreAndForwardMode} mode - The mode to use for submitting transactions to the server. One of QBrowser.QPay.StoreAndForwardMode 
+             * @param {number} autoUploadInterval - The time interval to use between batch uploads to the server when online.
+             * @param {function} errorFunction - Any error will be passed in here.
+             * @returns {PaymentEngineBuilder} - The PaymentEngineBuilder object for fluent access.
+             */
+            this.storeAndForward = function(mode, autoUploadInterval, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.storeAndForward", [mode, autoUploadInterval], [errorFunction]);
+                return QBrowser.QPay.PaymentEngineBuilder;
+            };
+
+            /**
+             * Builds the PaymentEngine instance with all of the specified options and the specified handler. Callback will receive the instance when completed.
+             * @memberof PaymentEngineBuilder
+             * @param {function} successFunction - Notify when PaymentEngineBuilder successfully create the PaymentEngine
+             * @param {function} errorFunction - Any error will be passed in here.
+             */
+            this.build = function(successFunction, errorFunction)
+            {
+                NativeCall("qpay.PaymentEngineBuilder.build", null, [successFunction, errorFunction]);
+            };
+        }; 
+        
+        /**
+         * @class InvoiceBuilder
+         * @classdesc This builder is used to build the invoice object for the current transaction.
+         */
+        this.InvoiceBuilder = new function() 
+        {
+            /**
+             * Set company name for invoice
+             * @memberof InvoiceBuilder
+             * @param {string} companyName - Company name of the party this invoice is created for.
+             * @param {function} errorFunction 
+             * @returns {InvoiceBuilder}
+             */
+            this.companyName = function(companyName, errorFunction) 
+            {
+                NativeCall("qpay.InvoiceBuilder.companyName", [companyName], [errorFunction]);
+                return QBrowser.QPay.InvoiceBuilder;
+            };
+
+            /**
+             * Set a purchase order reference
+             * @memberof InvoiceBuilder
+             * @param {string} reference - A unique ID string.
+             * @param {function} errorFunction 
+             * @returns {InvoiceBuilder}
+             */
+            this.purchaseOrderReference = function(reference, errorFunction)
+            {
+                NativeCall("qpay.InvoiceBuilder.purchaseOrderReference", [reference], [errorFunction]);
+                return QBrowser.QPay.InvoiceBuilder; 
+            };
+
+            /**
+             * Add invoice item for this invoice. You can add multiple items.
+             * @memberof InvoiceBuilder
+             * @param {InvoiceItem} invoiceItem - An instance of InvoiceItem class, defined at the top. 
+             * @param {function} errorFunction 
+             * @returns {InvoiceBuilder}
+             */
+            this.addItem = function(invoiceItem, errorFunction)
+            {
+                NativeCall("qpay.InvoiceBuilder.addItem", [JSON.stringify(invoiceItem)], [errorFunction]);
+                return QBrowser.QPay.InvoiceBuilder; 
+            };
+
+            /**
+             * Build the invoice using the provided parameters.
+             * @memberof InvoiceBuilder
+             * @param {function} successFunction - When success you will receive the Invoice object to this function
+             * @param {function} errorFunction
+             */
+            this.build = function(successFunction, errorFunction)
+            {
+                NativeCall("qpay.InvoiceBuilder.build", null, [successFunction, errorFunction]);
+            };
+        };
+
+        /**
+         * @class TransactionBuilder
+         * @classdesc 
+         */
+        this.TransactionBuilder = new function()
+        {
+            /**
+             * Set the type of transaction (e.g.: "Sale", "Refund"...)
+             * @memberof TransactionBuilder
+             * @param {TransactionType} type - The transaction type. One of QBrowser.QPay.TransactionType
+             * @param {string} transactionID - If this is a refund, void, undo, capture transaction type, the transactionID of the original Sale transaction must be passed here. Otherwise pass in null for other types.
+             * @param {function} errorFunction 
+             * @returns {TransactionBuilder}
+             */
+            this.transactionType = function(type, transactionID, errorFunction)
+            {
+                NativeCall("qpay.TransactionBuilder.transactionType", [type, transactionID], [errorFunction]);
+                return QBrowser.QPay.TransactionBuilder;
+            };
+
+            /**
+             * Set the amount and currency type
+             * @memberof TransactionBuilder
+             * @param {string} amount - The amount to be sent to the payment device for charging. This should be a String so we dont loose any precision.
+             * @param {string} currency - The type of currency. 
+             * @param {function} errorFunction 
+             * @returns {TransactionBuilder}
+             */
+            this.amount = function(amount, currency, errorFunction)
+            {
+                NativeCall("qpay.TransactionBuilder.amount", [amount, currency], [errorFunction]);
+                return QBrowser.QPay.TransactionBuilder;
+            };
+
+            /**
+             * Optional: The reference for this transaction. This is searchable in the backend. If this is not provided, a uuid will be auto generated.
+             * @memberof TransactionBuilder
+             * @param {string} reference - A unique reference for this transaction. Avoid using UUID for reference as FreedomPay has shorter length requirement.
+             * @param {function} errorFunction 
+             * @returns {TransactionBuilder}
+             */
+            this.reference = function(reference, errorFunction)
+            {
+                NativeCall("qpay.TransactionBuilder.reference", [reference], [errorFunction]);
+                return QBrowser.QPay.TransactionBuilder;
+            };
+
+            /**
+             * Build the Transaction object to process payment.
+             * @memberof TransactionBuilder
+             * @param {function} successFunction - A transaction object will be passed in when succeed. 
+             * @param {function} errorFunction 
+             */
+            this.build = function(successFunction, errorFunction)
+            {
+                NativeCall("qpay.TransactionBuilder.build", null, [successFunction, errorFunction]);
+            };
+        };
+    };
 };
 
-/*
+/*************************************************
  * Helper function that gets the function's name
- */
+ *************************************************/
 function GetFunctionName(name)
 {
     if (name && typeof name == "function")
